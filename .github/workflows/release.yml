@@ -1,0 +1,132 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.11']
+        include:
+          - os: ubuntu-latest
+            artifact_name: k2-linux-amd64
+          - os: windows-latest
+            artifact_name: k2-windows-amd64.exe
+          - os: macos-latest
+            artifact_name: k2-darwin-amd64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          pip install -e .
+
+      - name: Build executable
+        run: |
+          pyinstaller --onefile --name ${{ matrix.artifact_name }} --clean khao2/presentation/cli.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: dist/${{ matrix.artifact_name }}*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            COMMITS=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          fi
+          
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Get version
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create checksums
+        run: |
+          cd artifacts
+          find . -type f -exec sha256sum {} \; > ../checksums.txt
+          cat ../checksums.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Khao2 ${{ steps.version.outputs.VERSION }}
+          body: |
+            ## Khao2 ${{ steps.version.outputs.VERSION }}
+            
+            **Every single bit.**
+            
+            ### Installation
+            
+            #### From Source (Recommended)
+            ```bash
+            git clone https://github.com/odinglyn0/k2-cli.git
+            cd k2-cli
+            pip install -e .
+            ```
+            
+            #### Standalone Binary
+            Download the appropriate binary for your platform below and add it to your PATH.
+            
+            | Platform | Binary |
+            |----------|--------|
+            | Linux | `k2-linux-amd64` |
+            | Windows | `k2-windows-amd64.exe` |
+            | macOS | `k2-darwin-amd64` |
+            
+            ### What's Changed
+            
+            ${{ steps.changelog.outputs.CHANGELOG }}
+            
+            ### Checksums (SHA256)
+            
+            ```
+            $(cat checksums.txt)
+            ```
+            
+            ---
+            
+            **Full Changelog**: https://github.com/odinglyn0/k2-cli/compare/${{ steps.version.outputs.PREV_TAG }}...${{ steps.version.outputs.VERSION }}
+          files: |
+            artifacts/**/*
+            checksums.txt
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.VERSION, '-') }}
+          generate_release_notes: true
