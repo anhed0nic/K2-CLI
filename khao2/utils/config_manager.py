@@ -4,6 +4,9 @@ from pathlib import Path
 from typing import Dict, Optional
 
 
+DEFAULT_API_URL = "https://api.khao2.com"
+
+
 class ConfigManager:
     """Manages application configuration storage."""
 
@@ -19,11 +22,17 @@ class ConfigManager:
         """Save configuration to disk."""
         self._ensure_config_dir()
 
+        is_first_write = not self.config_file.exists()
         current = self.load()
+
         if token is not None:
             current['token'] = token
         if endpoint is not None:
             current['endpoint'] = endpoint
+
+        # Default endpoint to api.khao2.com on first write
+        if is_first_write and current['endpoint'] is None:
+            current['endpoint'] = DEFAULT_API_URL
 
         token_bytes = current['token'].encode('utf-8') if current['token'] else b''
         endpoint_bytes = current['endpoint'].encode('utf-8') if current['endpoint'] else b''
