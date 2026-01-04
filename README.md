@@ -91,7 +91,7 @@ SHA256: 39768f51d067905ee91c1422fe26ea2cc978ff0ac12bb61b3878f094c2cd1db3
 MD5: b34c91ec15a592d974131f02c1f05cb6
 
 ENGINES: 329/339 completed | 10 failed
-Runtime: 9734795ms | 29.84K FLOPs
+Runtime: 373489ms | 29.84K FLOPs
 
 FILE INTEGRITY
 ├─ Format: PNG image, 1 x 1, 8-bit/color RGBA, non-interlaced
