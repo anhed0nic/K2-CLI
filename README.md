@@ -55,7 +55,7 @@ k2 get <scan-id>
 This is a personal project turned SaaS side hustle, I originally built this for my own CTF challenges with no intention of making it a product.
 
 ## Pricing
-People may say 15 scans a month for free is too little, but please bear in mind that these statistical scans are sequential by nature and take upwards of 5+ minutes where they run on Modal.com HPC.
+People may say 5 scans a month for free is too little, but please bear in mind that these statistical scans are sequential by nature and take upwards of + minutes where they run on Modal.com HPC.
 
 ## Cool stuff
 
