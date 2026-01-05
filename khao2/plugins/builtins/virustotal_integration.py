@@ -297,8 +297,8 @@ class VirusTotalIntegrationPlugin(IntegrationPlugin):
         self._cache_file = cache_dir / "vt_results.json"
 
         try:
+            import json
             if self._cache_file.exists():
-                import json
                 with open(self._cache_file, 'r') as f:
                     self._cache = json.load(f)
             else:
