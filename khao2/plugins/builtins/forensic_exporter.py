@@ -320,8 +320,8 @@ class ForensicExporterPlugin(ExporterPlugin):
         try:
             from docx import Document
             from docx.shared import Inches
-        except ImportError:
-            raise PluginError("DOCX export requires python-docx: pip install python-docx")
+        except ImportError as err:
+            raise PluginError("DOCX export requires python-docx: pip install python-docx") from err
 
         doc = Document()
         doc.add_heading(report.title, 0)
