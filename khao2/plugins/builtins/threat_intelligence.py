@@ -1,5 +1,4 @@
 """Threat intelligence aggregator plugin for integrating multiple threat feeds."""
-import hashlib
 import json
 import time
 from dataclasses import dataclass
@@ -111,39 +110,44 @@ class ThreatIntelligencePlugin(ProcessorPlugin):
         """Clean up resources and save cache."""
         self._save_cache()
 
-    def process(self, data: Any, **kwargs) -> Any:
-        """Process input through threat intelligence analysis."""
-        if isinstance(data, dict):
-            if 'file_path' in data:
-                target = data['file_path']
-                target_type = 'file'
-            elif 'url' in data:
-                target = data['url']
-                target_type = 'url'
-            elif 'ip' in data:
-                target = data['ip']
-                target_type = 'ip'
-            elif 'domain' in data:
-                target = data['domain']
-                target_type = 'domain'
+    def process(self, items: List[Any], **kwargs) -> List[Any]:
+        """Process inputs through threat intelligence analysis."""
+        results = []
+        
+        for data in items:
+            if isinstance(data, dict):
+                if 'file_path' in data:
+                    target = data['file_path']
+                    target_type = 'file'
+                elif 'url' in data:
+                    target = data['url']
+                    target_type = 'url'
+                elif 'ip' in data:
+                    target = data['ip']
+                    target_type = 'ip'
+                elif 'domain' in data:
+                    target = data['domain']
+                    target_type = 'domain'
+                else:
+                    raise PluginError("No recognizable target in input data")
+            elif isinstance(data, str):
+                # Try to determine type from string
+                target = data
+                target_type = self._infer_target_type(data)
             else:
-                raise PluginError("No recognizable target in input data")
-        elif isinstance(data, str):
-            # Try to determine type from string
-            target = data
-            target_type = self._infer_target_type(data)
-        else:
-            raise PluginError("Invalid input: expected file path, URL, IP, or domain")
+                raise PluginError("Invalid input: expected file path, URL, IP, or domain")
 
-        # Perform threat assessment
-        assessment = self._assess_threat(target, target_type)
+            # Perform threat assessment
+            assessment = self._assess_threat(target, target_type)
 
-        return {
-            'threat_assessment': assessment,
-            'indicators': assessment.indicators_found,
-            'risk_score': assessment.risk_score,
-            'assessment': assessment.assessment
-        }
+            results.append({
+                'threat_assessment': assessment,
+                'indicators': assessment.indicators_found,
+                'risk_score': assessment.risk_score,
+                'assessment': assessment.assessment
+            })
+        
+        return results
 
     def _initialize_feeds(self) -> None:
         """Initialize threat intelligence feeds."""
@@ -233,7 +237,8 @@ class ThreatIntelligencePlugin(ProcessorPlugin):
                         source_count += 1
                     except Exception as e:
                         # Log error but continue with other feeds
-                        print(f"Error querying {feed_name}: {e}")
+                        import logging
+                        logging.warning(f"Error querying {feed_name}: {e}")
 
         # Calculate risk score
         if indicators:
@@ -306,7 +311,8 @@ class ThreatIntelligencePlugin(ProcessorPlugin):
             }
 
         except Exception as e:
-            print(f"Error querying {feed_name}: {e}")
+            import logging
+            logging.warning(f"Error querying {feed_name}: {e}")
 
         return indicators
 

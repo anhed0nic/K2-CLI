@@ -263,8 +263,8 @@ class ForensicExporterPlugin(ExporterPlugin):
             from reportlab.lib.pagesizes import letter
             from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
             from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-        except ImportError:
-            raise PluginError("PDF export requires reportlab: pip install reportlab")
+        except ImportError as err:
+            raise PluginError("PDF export requires reportlab: pip install reportlab") from err
 
         doc = SimpleDocTemplate(str(output_path), pagesize=letter)
         styles = getSampleStyleSheet()

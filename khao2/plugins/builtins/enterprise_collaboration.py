@@ -312,7 +312,7 @@ class EnterpriseCollaborationPlugin(IntegrationPlugin):
                 "response": response.text[:500]  # Truncate for logging
             }
         except Exception as e:
-            raise PluginError(f"Webhook failed: {e}")
+            raise PluginError(f"Webhook failed: {e}") from e
 
     def _execute_notification(self, action: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a notification action."""

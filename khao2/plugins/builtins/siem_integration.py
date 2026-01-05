@@ -107,8 +107,7 @@ class SIEMIntegrationPlugin(IntegrationPlugin):
         }
 
         # Expand log file path
-        if self.config['log_file'].startswith('~'):
-            self.config['log_file'] = str(Path.home() / self.config['log_file'][1:])
+        self.config['log_file'] = str(Path(self.config['log_file']).expanduser())
 
         # Ensure log directory exists
         log_path = Path(self.config['log_file'])
@@ -376,7 +375,7 @@ class SIEMIntegrationPlugin(IntegrationPlugin):
                 try:
                     logger.info(json.dumps(event.to_dict()))
                     sent_count += 1
-                except:
+                except Exception:
                     continue
 
             return {

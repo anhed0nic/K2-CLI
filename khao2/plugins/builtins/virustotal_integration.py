@@ -303,7 +303,7 @@ class VirusTotalIntegrationPlugin(IntegrationPlugin):
                     self._cache = json.load(f)
             else:
                 self._cache = {}
-        except:
+        except (json.JSONDecodeError, OSError, ValueError):
             self._cache = {}
 
     def _get_cached_result(self, file_hash: str) -> Optional[Dict[str, Any]]:

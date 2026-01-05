@@ -98,29 +98,34 @@ class ComplianceCheckerPlugin(ProcessorPlugin):
         """Clean up resources."""
         pass
 
-    def process(self, data: Any, **kwargs) -> Any:
-        """Process file through compliance checks."""
-        if isinstance(data, dict) and 'file_path' in data:
-            file_path = Path(data['file_path'])
-        elif isinstance(data, str):
-            file_path = Path(data)
-        else:
-            raise PluginError("Invalid input: expected file path")
+    def process(self, items: List[Any], **kwargs) -> List[Any]:
+        """Process files through compliance checks."""
+        results = []
+        
+        for data in items:
+            if isinstance(data, dict) and 'file_path' in data:
+                file_path = Path(data['file_path'])
+            elif isinstance(data, str):
+                file_path = Path(data)
+            else:
+                raise PluginError("Invalid input: expected file path")
 
-        if not file_path.exists():
-            raise PluginError(f"File not found: {file_path}")
+            if not file_path.exists():
+                raise PluginError(f"File not found: {file_path}")
 
-        # Perform compliance checks
-        results = self._check_compliance(file_path)
+            # Perform compliance checks
+            check_results = self._check_compliance(file_path)
 
-        # Generate report
-        report = self._generate_report(file_path, results)
+            # Generate report
+            report = self._generate_report(file_path, check_results)
 
-        return {
-            'compliance_report': report,
-            'results': results,
-            'passed': all(r.passed for r in results) if not self.config['strict_mode'] else report.critical_violations == 0
-        }
+            results.append({
+                'compliance_report': report,
+                'results': check_results,
+                'passed': all(r.passed for r in check_results) if not self.config['strict_mode'] else report.critical_violations == 0
+            })
+        
+        return results
 
     def _load_standards(self) -> None:
         """Load compliance standards definitions."""
@@ -229,7 +234,7 @@ class ComplianceCheckerPlugin(ProcessorPlugin):
 
             with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                 return f.read()
-        except:
+        except Exception:
             return "[BINARY_OR_UNREADABLE_FILE]"
 
     def _calculate_file_hash(self, file_path: Path) -> str:

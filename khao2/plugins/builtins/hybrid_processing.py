@@ -318,7 +318,7 @@ class HybridProcessingPlugin(ProcessorPlugin):
                 if not can_scan:
                     # No credits, use local only
                     return "local_only"
-            except:
+            except Exception:
                 pass
 
         # Use local confidence to decide

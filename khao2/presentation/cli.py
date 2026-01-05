@@ -666,6 +666,7 @@ def list_scans(limit, offset, json_output):
 @click.option('--executive', is_flag=True, help='Generate executive summary report')
 def report(output_path, output_format, days, template, executive):
     """Generate comprehensive analysis reports."""
+    from pathlib import Path
     from khao2.plugins import PluginManager, PluginContext
 
     config_manager = ConfigManager()
