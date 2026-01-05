@@ -5,7 +5,7 @@ import pkgutil
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Protocol, Type, Union
+from typing import Any, Dict, List, Optional, Protocol, Type, Union, runtime_checkable
 from khao2.core.exceptions import Khao2Error
 
 
@@ -51,6 +51,7 @@ class PluginContext:
         self.services = services
 
 
+@runtime_checkable
 class Plugin(Protocol):
     """Protocol for all plugins."""
 
@@ -68,6 +69,7 @@ class Plugin(Protocol):
         ...
 
 
+@runtime_checkable
 class DetectorPlugin(Plugin, Protocol):
     """Protocol for detection plugins."""
 
@@ -76,6 +78,7 @@ class DetectorPlugin(Plugin, Protocol):
         ...
 
 
+@runtime_checkable
 class ProcessorPlugin(Plugin, Protocol):
     """Protocol for processing plugins."""
 
@@ -84,6 +87,7 @@ class ProcessorPlugin(Plugin, Protocol):
         ...
 
 
+@runtime_checkable
 class ExporterPlugin(Plugin, Protocol):
     """Protocol for export plugins."""
 
@@ -92,6 +96,7 @@ class ExporterPlugin(Plugin, Protocol):
         ...
 
 
+@runtime_checkable
 class AnalyzerPlugin(Plugin, Protocol):
     """Protocol for analysis plugins."""
 
@@ -100,6 +105,7 @@ class AnalyzerPlugin(Plugin, Protocol):
         ...
 
 
+@runtime_checkable
 class IntegrationPlugin(Plugin, Protocol):
     """Protocol for integration plugins."""
 
@@ -139,7 +145,9 @@ class PluginManager:
                     metadata = self._load_plugin_metadata_from_file(plugin_file)
                     if metadata:
                         plugins[metadata.name] = metadata
-                except Exception:
+                except Exception as e:
+                    import logging
+                    logging.warning(f"Failed to load plugin from {plugin_file}: {e}")
                     continue
 
         # Discover user plugins
@@ -150,7 +158,9 @@ class PluginManager:
                         metadata = self._load_plugin_metadata_from_file(plugin_file)
                         if metadata:
                             plugins[metadata.name] = metadata
-                    except Exception:
+                    except Exception as e:
+                        import logging
+                        logging.warning(f"Failed to load plugin from {plugin_file}: {e}")
                         continue
 
         return plugins

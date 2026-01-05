@@ -341,7 +341,7 @@ class VirusTotalIntegrationPlugin(IntegrationPlugin):
             import json
             with open(self._cache_file, 'w') as f:
                 json.dump(self._cache, f, indent=2)
-        except:
+        except (OSError, TypeError):
             pass  # Fail silently
 
 

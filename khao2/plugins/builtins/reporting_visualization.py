@@ -244,8 +244,8 @@ class ReportingVisualizationPlugin(ExporterPlugin):
             from reportlab.lib.pagesizes import letter
             from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
             from reportlab.lib.styles import getSampleStyleSheet
-        except ImportError:
-            raise PluginError("PDF export requires reportlab: pip install reportlab")
+        except ImportError as e:
+            raise PluginError("PDF export requires reportlab: pip install reportlab") from e
 
         if not isinstance(data, ReportData):
             raise PluginError("PDF export requires ReportData object")

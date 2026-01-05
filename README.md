@@ -10,7 +10,7 @@
 
 **Every single bit.**
 
-Easy to use, infromative and comprehensive steganalysis suite.
+Easy to use, informative and comprehensive steganalysis suite.
 
 This is a CLI tool for my SaaS sidehustle (khao2.com) for steganalysis.
 

@@ -358,11 +358,15 @@ class EnterpriseCollaborationPlugin(IntegrationPlugin):
         # Load workspaces
         ws_file = data_dir / "workspaces.json"
         if ws_file.exists():
-            with open(ws_file, 'r') as f:
-                ws_data = json.load(f)
-                for ws_dict in ws_data.values():
-                    ws = Workspace(**ws_dict)
-                    self.workspaces[ws.workspace_id] = ws
+            try:
+                with open(ws_file, 'r') as f:
+                    ws_data = json.load(f)
+                    for ws_dict in ws_data.values():
+                        ws = Workspace(**ws_dict)
+                        self.workspaces[ws.workspace_id] = ws
+            except (json.JSONDecodeError, TypeError, KeyError) as e:
+                import logging
+                logging.warning(f"Failed to load workspaces: {e}")
 
         # Load shared scans
         scans_file = data_dir / "shared_scans.json"

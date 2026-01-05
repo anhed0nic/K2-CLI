@@ -433,7 +433,7 @@ class ThreatIntelligencePlugin(ProcessorPlugin):
             ])
 
         # Add specific recommendations based on indicator types
-        indicator_types = set(ind.type for ind in indicators)
+        indicator_types = set(ind.indicator_type for ind in indicators)
         if 'ip' in indicator_types:
             recommendations.append("Block the IP address in firewall rules")
         if 'domain' in indicator_types:

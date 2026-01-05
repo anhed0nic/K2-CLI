@@ -448,7 +448,7 @@ def dig(image_path, watch, debug, json_output, skip_quota_check):
 @cli.command(cls=CustomCommand)
 @click.argument('paths', nargs=-1, required=True)
 @click.option('--recursive', '-r', is_flag=True, help='Recursively scan directories')
-@click.option('--pattern', default='*.{png,jpg,jpeg,gif,bmp,webp}', help='File pattern to match')
+@click.option('--pattern', default='*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp', help='File pattern to match')
 @click.option('--json', 'json_output', is_flag=True, help='Output results in JSON format')
 @click.option('--output', '-o', 'output_file', help='Save results to file')
 def batch(paths, recursive, pattern, json_output, output_file):

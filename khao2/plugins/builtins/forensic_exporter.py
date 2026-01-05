@@ -1,5 +1,6 @@
 """Custom forensic exporter plugin for specialized report formats."""
 import csv
+import html
 import json
 import time
 from dataclasses import dataclass
@@ -356,11 +357,16 @@ class ForensicExporterPlugin(ExporterPlugin):
 
     def _export_html(self, report: ForensicReport, output_path: Path, **kwargs) -> None:
         """Export report as HTML."""
+        # Escape all user-controlled data to prevent XSS
+        esc_title = html.escape(report.title)
+        esc_case = html.escape(report.case_number) if report.case_number else ""
+        esc_examiner = html.escape(report.examiner)
+        
         html_content = f"""
         <!DOCTYPE html>
         <html>
         <head>
-            <title>{report.title}</title>
+            <title>{esc_title}</title>
             <style>
                 body {{ font-family: Arial, sans-serif; margin: 40px; }}
                 .header {{ background: #f0f0f0; padding: 20px; border-radius: 5px; }}
@@ -373,16 +379,16 @@ class ForensicExporterPlugin(ExporterPlugin):
         </head>
         <body>
             <div class="header">
-                <h1>{report.title}</h1>
-                {"<p><strong>Case Number:</strong> " + report.case_number + "</p>" if report.case_number else ""}
-                <p><strong>Examiner:</strong> {report.examiner}</p>
+                <h1>{esc_title}</h1>
+                {"<p><strong>Case Number:</strong> " + esc_case + "</p>" if esc_case else ""}
+                <p><strong>Examiner:</strong> {esc_examiner}</p>
                 <p><strong>Report Date:</strong> {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(report.created_at))}</p>
             </div>
 
             <div class="section">
                 <h2>Executive Summary</h2>
                 <ul>
-                    {"".join(f"<li>{conclusion}</li>" for conclusion in report.conclusions)}
+                    {"".join(f"<li>{html.escape(conclusion)}</li>" for conclusion in report.conclusions)}
                 </ul>
             </div>
 
@@ -390,7 +396,7 @@ class ForensicExporterPlugin(ExporterPlugin):
                 <h2>Key Findings</h2>
                 <table>
                     <tr><th>Metric</th><th>Value</th></tr>
-                    {"".join(f"<tr><td>{k.replace('_', ' ').title()}</td><td>{v}</td></tr>" for k, v in report.findings.items())}
+                    {"".join(f"<tr><td>{html.escape(k.replace('_', ' ').title())}</td><td>{html.escape(str(v))}</td></tr>" for k, v in report.findings.items())}
                 </table>
             </div>
         </body>

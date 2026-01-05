@@ -21,7 +21,7 @@ setup(
         "click>=8.0.0",
         "requests>=2.28.0",
         "pathlib>=1.0.1",
-        "typing-extensions>=4.0.0",
+        "typing-extensions>=4.0.0,<4.8.0",
     ],
     entry_points={
         "console_scripts": [

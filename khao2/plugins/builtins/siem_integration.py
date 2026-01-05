@@ -240,9 +240,8 @@ class SIEMIntegrationPlugin(IntegrationPlugin):
 
         except Exception as e:
             return {"status": "error", "message": str(e)}
-        finally:
-            # Clear buffer after successful send
-            self.event_buffer.clear()
+        # Clear buffer only after successful send
+        self.event_buffer.clear()
 
     def _send_to_file(self, events: List[SIEMEvent]) -> Dict[str, Any]:
         """Send events to log file."""

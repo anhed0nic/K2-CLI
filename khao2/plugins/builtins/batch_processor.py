@@ -129,7 +129,7 @@ class BatchProcessorPlugin(ProcessorPlugin):
             job.status = "failed"
             job.errors.append(str(e))
             job.completed_at = time.time()
-            raise PluginError(f"Batch processing failed: {e}")
+            raise PluginError(f"Batch processing failed: {e}") from e
 
     def get_job_status(self, job_id: str) -> Optional[BatchJob]:
         """Get the status of a batch job."""
@@ -215,4 +215,28 @@ class BatchProcessorPlugin(ProcessorPlugin):
 
 
 # Plugin metadata for discovery
-PLUGIN_METADATA = BatchProcessorPlugin().metadata
+PLUGIN_METADATA = PluginMetadata(
+    name="batch_processor",
+    version="1.0.0",
+    description="Intelligent batch processing with concurrency and smart routing",
+    author="Khao2 Team",
+    plugin_type="processor",
+    entry_point="khao2.plugins.builtins.batch_processor.BatchProcessorPlugin",
+    config_schema={
+        "max_concurrent": {
+            "type": "integer",
+            "default": 5,
+            "description": "Maximum number of concurrent scans"
+        },
+        "retry_attempts": {
+            "type": "integer",
+            "default": 3,
+            "description": "Number of retry attempts for failed scans"
+        },
+        "retry_delay": {
+            "type": "number",
+            "default": 1.0,
+            "description": "Delay between retry attempts in seconds"
+        }
+    }
+)

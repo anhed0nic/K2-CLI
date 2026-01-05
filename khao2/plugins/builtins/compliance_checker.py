@@ -119,7 +119,7 @@ class ComplianceCheckerPlugin(ProcessorPlugin):
         return {
             'compliance_report': report,
             'results': results,
-            'passed': all(r.passed for r in results) if not self.config['strict_mode'] else len(report.critical_violations) == 0
+            'passed': all(r.passed for r in results) if not self.config['strict_mode'] else report.critical_violations == 0
         }
 
     def _load_standards(self) -> None:
@@ -200,6 +200,8 @@ class ComplianceCheckerPlugin(ProcessorPlugin):
                     recommendations.extend(rule_result['recommendations'])
                     score -= rule_result.get('penalty', 0.1)
             except Exception as e:
+                import logging
+                logging.warning(f"Error checking {rule_name}: {e}")
                 violations.append(f"Error checking {rule_name}: {str(e)}")
                 score -= 0.05
 

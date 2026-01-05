@@ -2,7 +2,6 @@
 import hashlib
 import json
 import os
-import pickle
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -217,7 +216,7 @@ class HybridProcessingPlugin(ProcessorPlugin):
                         "processed": True
                     }
                 else:
-                    raise e
+                    raise
 
         else:  # cloud_only
             cloud_result = self._perform_cloud_analysis(file_path)
@@ -331,6 +330,8 @@ class HybridProcessingPlugin(ProcessorPlugin):
 
     def _calculate_entropy(self, file_path: Path) -> float:
         """Calculate file entropy."""
+        import math
+        
         with open(file_path, 'rb') as f:
             data = f.read()
 
@@ -341,7 +342,7 @@ class HybridProcessingPlugin(ProcessorPlugin):
         for i in range(256):
             p = data.count(i) / len(data)
             if p > 0:
-                entropy -= p * (p.bit_length() - 1)  # Approximation of log2
+                entropy -= p * math.log2(p)
 
         return entropy / 8.0  # Normalize to 0-1
 
@@ -410,15 +411,20 @@ class HybridProcessingPlugin(ProcessorPlugin):
         self.cache[file_hash] = entry
 
     def _load_cache(self) -> None:
-        """Load cache from disk."""
+        \"\"\"Load cache from disk.\"\"\"
         if not self.config.enable_caching:
             return
 
-        cache_file = self.config.cache_dir / "scan_cache.pkl"
+        cache_file = self.config.cache_dir / "scan_cache.json"
         if cache_file.exists():
             try:
-                with open(cache_file, 'rb') as f:
-                    self.cache = pickle.load(f)
+                import json
+                with open(cache_file, 'r') as f:
+                    cache_data = json.load(f)
+                    # Reconstruct CacheEntry objects from dicts
+                    self.cache = {
+                        k: CacheEntry(**v) for k, v in cache_data.items()
+                    }
 
                 # Remove expired entries
                 expired = [k for k, v in self.cache.items() if v.is_expired()]
@@ -430,14 +436,26 @@ class HybridProcessingPlugin(ProcessorPlugin):
                 self.cache = {}
 
     def _save_cache(self) -> None:
-        """Save cache to disk."""
+        \"\"\"Save cache to disk.\"\"\"
         if not self.config.enable_caching:
             return
 
-        cache_file = self.config.cache_dir / "scan_cache.pkl"
+        cache_file = self.config.cache_dir / "scan_cache.json"
         try:
-            with open(cache_file, 'wb') as f:
-                pickle.dump(self.cache, f)
+            import json
+            with open(cache_file, 'w') as f:
+                # Convert CacheEntry objects to dicts for JSON serialization
+                cache_data = {
+                    k: {
+                        'file_hash': v.file_hash,
+                        'file_path': v.file_path,
+                        'scan_result': v.scan_result,
+                        'cached_at': v.cached_at,
+                        'expires_at': v.expires_at,
+                        'metadata': v.metadata
+                    } for k, v in self.cache.items()
+                }
+                json.dump(cache_data, f, default=str)
         except Exception:
             pass  # Fail silently for cache saves
 
